@@ -168,6 +168,10 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+# Gradle
+backend/.gradle/
+backend/build/
+
 # IntelliJ based IDEs
 .idea
 

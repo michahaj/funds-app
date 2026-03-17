@@ -1,0 +1,17 @@
+package io.github.michahaj.funds_app.dto;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+public record TransactionResponse(
+        UUID id,
+        String assetSymbol,
+        String exchange,
+        String type,
+        BigDecimal quantity,
+        BigDecimal pricePerUnit,
+        LocalDateTime tradeDate,
+        String note
+) {
+}

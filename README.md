@@ -15,6 +15,7 @@ Everything that can be bought (stocks, bonds, crypto)
 | name | VARCHAR(100) | Fullname (for example `Apple Inc.`) |
 | type | ENUM | `STOCK`, `CRYPTO`, `BOND`, `ETF` ... |
 | currency_code | VARCHAR(3) | for example `USD`, `PLN` |
+| exchange | VARCHAR(20) | exchange (for uniqueness) |
 
 ### quotes
 

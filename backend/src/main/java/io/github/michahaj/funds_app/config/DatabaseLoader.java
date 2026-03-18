@@ -74,7 +74,6 @@ public class DatabaseLoader implements CommandLineRunner {
 
     private void seedTransactions() {
         if (transactionRepository.count() == 0) {
-            log.info("Tworzenie transakcji testowych...");
 
             Portfolio portfolio = portfolioRepository.findAll().get(0);
 

@@ -3,10 +3,12 @@ package io.github.michahaj.funds_app.controller;
 import io.github.michahaj.funds_app.dto.TransactionResponse;
 import io.github.michahaj.funds_app.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -17,9 +19,11 @@ public class TransactionController {
     private final TransactionRepository transactionRepository;
 
     @GetMapping
-    public List<TransactionResponse> getAllTransactions() {
+    public ResponseEntity<List<TransactionResponse>> getUserTransactions(Principal principal) {
 
-        return transactionRepository.findAll().stream()
+        String userEmail = principal.getName();
+
+        List<TransactionResponse> transactions = transactionRepository.findAllByPortfolioUserEmail(userEmail).stream()
                 .map(tx -> new TransactionResponse(
                         tx.getId(),
                         tx.getAsset().getSymbol(),
@@ -31,5 +35,7 @@ public class TransactionController {
                         tx.getNote()
                 ))
                 .toList();
+
+        return ResponseEntity.ok(transactions);
     }
 }

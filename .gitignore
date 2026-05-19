@@ -191,3 +191,5 @@ backend/build/
 !.yarn/versions
 
 .pnp.*
+
+backend/bin

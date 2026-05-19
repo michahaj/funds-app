@@ -1,0 +1,3 @@
+ALTER TABLE assets
+ADD COLUMN current_price NUMERIC(19, 4),
+ADD COLUMN last_update TIMESTAMP;

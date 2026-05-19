@@ -5,8 +5,15 @@ import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 @Entity
-@Table(name = "assets")
+@Table(name = "assets", uniqueConstraints = {
+        @UniqueConstraint(
+                name = "uk_assets_symbol_exchange",
+                columnNames = {"symbol", "exchange"})
+})
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,7 +24,7 @@ public class Asset {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(unique = true, nullable = false, length = 10)
+    @Column(nullable = false, length = 20)
     private String symbol;
 
     @Column(name = "full_name", length = 100)
@@ -33,6 +40,15 @@ public class Asset {
 
     @Column(nullable = false)
     private String exchange;
+
+    @Column(length = 12)
+    private String isin;
+
+    @Column(name = "current_price", precision = 19, scale = 8)
+    private BigDecimal currentPrice;
+
+    @Column(name = "last_update")
+    private LocalDateTime lastUpdate;
 
     @Column(name = "is_active")
     private boolean isActive = true;

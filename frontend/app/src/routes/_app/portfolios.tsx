@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_app/portfolios")({
-  component: () => <div className=""></div>,
+    component: () => <div className=""></div>,
 });

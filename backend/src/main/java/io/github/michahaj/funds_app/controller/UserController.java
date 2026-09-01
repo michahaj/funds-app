@@ -122,4 +122,9 @@ public class UserController {
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                 .body("Logged out successfully!");
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<String> getCurrentUser() {
+        return ResponseEntity.ok("Authenticated");
+    }
 }

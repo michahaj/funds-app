@@ -1,6 +1,22 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { api } from "../api/axios";
 
-export const Route = createFileRoute("/_public/")({
+export const Route = createFileRoute("/")({
+    beforeLoad: async () => {
+        let isAuthenticated = false;
+        try {
+            await api.get("/users/me");
+            isAuthenticated = true;
+        } catch (error) {
+            //...
+        }
+
+        if (isAuthenticated) {
+            throw redirect({
+                to: "/dashboard",
+            });
+        }
+    },
     component: () => (
         <div className="@container">
             <p className="py-8 px-6 z-30 text-2xl @sm:text-4xl @md:text-6xl font-bold max-w-2xl @md:max-w-5xl mx-auto text-center">

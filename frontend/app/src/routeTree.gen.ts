@@ -11,10 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PublicRouteImport } from './routes/_public'
 import { Route as AppRouteImport } from './routes/_app'
-import { Route as PublicIndexRouteImport } from './routes/_public/index'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as PublicRegisterRouteImport } from './routes/_public/register'
 import { Route as PublicLoginRouteImport } from './routes/_public/login'
 import { Route as AppPortfoliosRouteImport } from './routes/_app/portfolios'
+import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 
 const PublicRoute = PublicRouteImport.update({
   id: '/_public',
@@ -24,10 +25,10 @@ const AppRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PublicIndexRoute = PublicIndexRouteImport.update({
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => PublicRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
 const PublicRegisterRoute = PublicRegisterRouteImport.update({
   id: '/register',
@@ -44,44 +45,54 @@ const AppPortfoliosRoute = AppPortfoliosRouteImport.update({
   path: '/portfolios',
   getParentRoute: () => AppRoute,
 } as any)
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof PublicIndexRoute
+  '/': typeof IndexRoute
+  '/dashboard': typeof AppDashboardRoute
   '/portfolios': typeof AppPortfoliosRoute
   '/login': typeof PublicLoginRoute
   '/register': typeof PublicRegisterRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof PublicIndexRoute
+  '/': typeof IndexRoute
+  '/dashboard': typeof AppDashboardRoute
   '/portfolios': typeof AppPortfoliosRoute
   '/login': typeof PublicLoginRoute
   '/register': typeof PublicRegisterRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
   '/_public': typeof PublicRouteWithChildren
+  '/_app/dashboard': typeof AppDashboardRoute
   '/_app/portfolios': typeof AppPortfoliosRoute
   '/_public/login': typeof PublicLoginRoute
   '/_public/register': typeof PublicRegisterRoute
-  '/_public/': typeof PublicIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/portfolios' | '/login' | '/register'
+  fullPaths: '/' | '/dashboard' | '/portfolios' | '/login' | '/register'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/portfolios' | '/login' | '/register'
+  to: '/' | '/dashboard' | '/portfolios' | '/login' | '/register'
   id:
     | '__root__'
+    | '/'
     | '/_app'
     | '/_public'
+    | '/_app/dashboard'
     | '/_app/portfolios'
     | '/_public/login'
     | '/_public/register'
-    | '/_public/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
   PublicRoute: typeof PublicRouteWithChildren
 }
@@ -102,12 +113,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_public/': {
-      id: '/_public/'
+    '/': {
+      id: '/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof PublicIndexRouteImport
-      parentRoute: typeof PublicRoute
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_public/register': {
       id: '/_public/register'
@@ -130,14 +141,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPortfoliosRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/dashboard': {
+      id: '/_app/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppDashboardRoute: typeof AppDashboardRoute
   AppPortfoliosRoute: typeof AppPortfoliosRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppDashboardRoute: AppDashboardRoute,
   AppPortfoliosRoute: AppPortfoliosRoute,
 }
 
@@ -146,19 +166,18 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 interface PublicRouteChildren {
   PublicLoginRoute: typeof PublicLoginRoute
   PublicRegisterRoute: typeof PublicRegisterRoute
-  PublicIndexRoute: typeof PublicIndexRoute
 }
 
 const PublicRouteChildren: PublicRouteChildren = {
   PublicLoginRoute: PublicLoginRoute,
   PublicRegisterRoute: PublicRegisterRoute,
-  PublicIndexRoute: PublicIndexRoute,
 }
 
 const PublicRouteWithChildren =
   PublicRoute._addFileChildren(PublicRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   PublicRoute: PublicRouteWithChildren,
 }

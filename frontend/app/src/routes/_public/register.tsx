@@ -3,6 +3,7 @@ import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
 import { api } from "../../api/axios";
 import { useState } from "react";
+import { useRegisterMutation } from "../../api/mutations/useRegister";
 
 export const Route = createFileRoute("/_public/register")({
     component: RegisterComponent,
@@ -17,6 +18,7 @@ const registerSchema = z.object({
 function RegisterComponent() {
     const navigate = useNavigate();
     const [serverError, setServerError] = useState<string | null>(null);
+    const { mutateAsync } = useRegisterMutation();
 
     const form = useForm({
         defaultValues: {
@@ -29,7 +31,7 @@ function RegisterComponent() {
         },
         onSubmit: async ({ value }) => {
             try {
-                await api.post("/users/register", value);
+                await mutateAsync(value);
                 navigate({ to: "/login" });
             } catch {
                 const backendMsg = "Wystąpił błąd serwera";

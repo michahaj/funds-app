@@ -31,7 +31,7 @@ function LoginComponent() {
             try {
                 await api.post("/users/login", value);
 
-                navigate({ to: "/" });
+                navigate({ to: "/dashboard" });
             } catch (err: any) {
                 const backendMsg = err.response?.data || "Nieprawidłowy email lub hasło";
 

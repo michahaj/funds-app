@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
-import { api } from "../../api/axios";
 import { useState } from "react";
 import { useRegisterMutation } from "../../api/mutations/useRegister";
 

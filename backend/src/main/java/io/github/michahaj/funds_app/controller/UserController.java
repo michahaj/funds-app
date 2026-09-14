@@ -5,6 +5,7 @@ import io.github.michahaj.funds_app.dto.RegisterRequest;
 import io.github.michahaj.funds_app.model.User;
 import io.github.michahaj.funds_app.repository.UserRepository;
 import io.github.michahaj.funds_app.service.JwtService;
+import io.github.michahaj.funds_app.service.RefreshTokenService;
 import io.github.michahaj.funds_app.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -23,6 +24,7 @@ public class UserController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
@@ -43,6 +45,7 @@ public class UserController {
 
         String accessToken = jwtService.generateAccessToken(user.getEmail());
         String refreshToken = jwtService.generateRefreshToken(user.getEmail());
+        refreshTokenService.store(refreshToken);
 
         ResponseCookie accessCookie = ResponseCookie.from("access_token", accessToken)
                 .httpOnly(true)
@@ -55,7 +58,7 @@ public class UserController {
         ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken)
                 .httpOnly(true)
                 .secure(false)
-                .path("/api/users/refresh")
+                .path("/api/users")
                 .maxAge(7 * 24 * 60 * 60)
                 .sameSite("Lax")
                 .build();
@@ -74,13 +77,19 @@ public class UserController {
         }
 
         try {
-            if (!jwtService.isTokenValid(refreshToken)) {
+            if (!jwtService.isRefreshTokenValid(refreshToken)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is invalid!");
             }
 
             String userEmail = jwtService.extractEmail(refreshToken);
 
+            if (!refreshTokenService.consume(refreshToken)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token was revoked or already used!");
+            }
+
             String newAccessToken = jwtService.generateAccessToken(userEmail);
+            String newRefreshToken = jwtService.generateRefreshToken(userEmail);
+            refreshTokenService.store(newRefreshToken);
 
             ResponseCookie newAccessCookie = ResponseCookie.from("access_token", newAccessToken)
                     .httpOnly(true)
@@ -90,8 +99,17 @@ public class UserController {
                     .sameSite("Lax")
                     .build();
 
+            ResponseCookie newRefreshCookie = ResponseCookie.from("refresh_token", newRefreshToken)
+                    .httpOnly(true)
+                    .secure(false)
+                    .path("/api/users")
+                    .maxAge(7 * 24 * 60 * 60)
+                    .sameSite("Lax")
+                    .build();
+
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, newAccessCookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, newRefreshCookie.toString())
                     .body("Token refreshed successfully!");
 
         } catch (Exception e) {
@@ -100,7 +118,13 @@ public class UserController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout() {
+    public ResponseEntity<?> logout(
+            @CookieValue(name = "refresh_token", required = false) String refreshToken
+    ) {
+        if (refreshToken != null && !refreshToken.isBlank()) {
+            refreshTokenService.revoke(refreshToken);
+        }
+
         ResponseCookie accessCookie = ResponseCookie.from("access_token", "")
                 .httpOnly(true)
                 .secure(false)
@@ -112,7 +136,7 @@ public class UserController {
         ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", "")
                 .httpOnly(true)
                 .secure(false)
-                .path("/api/users/refresh")
+                .path("/api/users")
                 .maxAge(0)
                 .sameSite("Lax")
                 .build();

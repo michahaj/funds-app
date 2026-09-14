@@ -1,5 +1,6 @@
 package io.github.michahaj.funds_app.service;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -12,6 +13,10 @@ import java.util.UUID;
 
 @Service
 public class JwtService {
+
+    private static final String TOKEN_TYPE_CLAIM = "token_type";
+    private static final String ACCESS_TOKEN_TYPE = "access";
+    private static final String REFRESH_TOKEN_TYPE = "refresh";
 
     @Value("${jwt.secret}")
     private String secretKey;
@@ -27,6 +32,7 @@ public class JwtService {
     public String generateAccessToken(String email) {
         return Jwts.builder()
                 .subject(email)
+                .claim(TOKEN_TYPE_CLAIM, ACCESS_TOKEN_TYPE)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME_ACCESS_TOKEN))
                 .signWith(getSignInKey())
@@ -36,6 +42,7 @@ public class JwtService {
     public String generateRefreshToken(String email) {
         return Jwts.builder()
                 .subject(email)
+                .claim(TOKEN_TYPE_CLAIM, REFRESH_TOKEN_TYPE)
                 .id(UUID.randomUUID().toString())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME_REFRESH_TOKEN))
@@ -44,18 +51,33 @@ public class JwtService {
     }
 
     public String extractEmail(String token) {
+        return extractClaims(token).getSubject();
+    }
+
+    public Date extractExpiration(String token) {
+        return extractClaims(token).getExpiration();
+    }
+
+    public boolean isAccessTokenValid(String token) {
+        return isTokenValid(token, ACCESS_TOKEN_TYPE);
+    }
+
+    public boolean isRefreshTokenValid(String token) {
+        return isTokenValid(token, REFRESH_TOKEN_TYPE);
+    }
+
+    private Claims extractClaims(String token) {
         return Jwts.parser()
                 .verifyWith(getSignInKey())
                 .build()
                 .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
+                .getPayload();
     }
 
-    public boolean isTokenValid(String token) {
+    private boolean isTokenValid(String token, String expectedType) {
         try {
-            extractEmail(token);
-            return true;
+            Claims claims = extractClaims(token);
+            return expectedType.equals(claims.get(TOKEN_TYPE_CLAIM, String.class));
         } catch (Exception e) {
             return false;
         }
